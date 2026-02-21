@@ -391,80 +391,213 @@ elif "Weather" in page:
 # ─────────────────────────────────────────────
 elif "Predict" in page:
     st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">Predict Demand</div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:22px;">Enter conditions to forecast hourly bike rentals</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:18px;">Enter conditions to forecast hourly bike rentals</div>', unsafe_allow_html=True)
 
-    col_form, col_out = st.columns([3,2], gap="large")
+    season_names  = {1:"Spring", 2:"Summer", 3:"Fall", 4:"Winter"}
+    weather_names = {1:"Clear",  2:"Cloudy", 3:"Light Rain", 4:"Heavy Rain"}
 
-    with col_form:
+    col_inputs, col_results = st.columns([1, 2], gap="large")
+
+    # ── LEFT: Input panel ──────────────────────
+    with col_inputs:
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
-        r1, r2 = st.columns(2)
-        with r1:
-            season = st.selectbox("Season", [1,2,3,4],
-                format_func=lambda x:{1:"🌸 Spring",2:"☀️ Summer",3:"🍂 Fall",4:"❄️ Winter"}[x])
-            yr = st.selectbox("Year", [0,1], format_func=lambda x:"2011" if x==0 else "2012")
-            month = st.slider("Month", 1, 12, 6)
-            holiday = st.selectbox("Holiday", [0,1], format_func=lambda x:"No" if x==0 else "Yes")
-            workingday = st.selectbox("Working Day", [0,1], format_func=lambda x:"No" if x==0 else "Yes")
-        with r2:
-            weather = st.selectbox("Weather", [1,2,3,4],
-                format_func=lambda x:{1:"☀️ Clear",2:"⛅ Cloudy",3:"🌧 Light Rain",4:"⛈ Heavy Rain"}[x])
-            temp = st.number_input("Temperature (norm.)", 0.0, 1.0, 0.5, 0.01)
-            atemp = st.number_input("Feels Like (norm.)", 0.0, 1.0, 0.5, 0.01)
-            humidity = st.number_input("Humidity (norm.)", 0.0, 1.0, 0.5, 0.01)
-            windspeed = st.number_input("Wind Speed (norm.)", 0.0, 1.0, 0.2, 0.01)
+        st.markdown('<div style="font-size:0.95rem;font-weight:700;color:#e2ecfb;margin-bottom:16px;">Input Features</div>', unsafe_allow_html=True)
 
-        hour = st.slider("Hour of Day (0–23)", 0, 23, 17)
+        hour       = st.selectbox("Hour of Day", list(range(24)),
+                        index=8, format_func=lambda x: f"{x:02d}:00")
+        workingday = st.selectbox("Day Type", [1, 0],
+                        format_func=lambda x: "Weekday" if x==1 else "Weekend")
+        month      = st.selectbox("Month", list(range(1,13)),
+                        index=5, format_func=lambda x: ['Jan','Feb','Mar','Apr','May','Jun',
+                                                         'Jul','Aug','Sep','Oct','Nov','Dec'][x-1])
+        weather    = st.selectbox("Weather Condition", [1,2,3,4],
+                        format_func=lambda x:{1:"Clear / Sunny",2:"Cloudy / Mist",
+                                              3:"Light Rain",4:"Heavy Rain"}[x])
+        temp_c     = st.slider("Temperature (°C)", -5, 40, 22)
+        temp       = round((temp_c + 8) / 47, 4)   # approx denormalize
+        atemp      = round(temp * 0.97, 4)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.75rem;color:#3a5472;margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase;">More Options</div>', unsafe_allow_html=True)
+        season    = st.selectbox("Season", [1,2,3,4],
+                        format_func=lambda x:{1:"🌸 Spring",2:"☀️ Summer",3:"🍂 Fall",4:"❄️ Winter"}[x])
+        yr        = st.selectbox("Year", [0,1], format_func=lambda x:"2011" if x==0 else "2012")
+        holiday   = st.selectbox("Holiday", [0,1], format_func=lambda x:"No" if x==0 else "Yes")
+        humidity  = st.slider("Humidity (%)", 0, 100, 55) / 100
+        windspeed = st.slider("Wind Speed", 0, 67, 15) / 67
+
         st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         predict_btn = st.button("🔮  Predict Rental Demand")
 
-    with col_out:
+    # ── RIGHT: Results panel ───────────────────
+    with col_results:
         features = np.array([[season, yr, month, holiday, workingday,
                                weather, temp, atemp, humidity, windspeed, hour]])
-        season_names = {1:"Spring",2:"Summer",3:"Fall",4:"Winter"}
-        weather_names = {1:"Clear",2:"Cloudy",3:"Light Rain",4:"Heavy Rain"}
 
         if predict_btn:
             try:
-                model = pickle.load(open("bike_model.pkl", "rb"))
-                pred_raw = model.predict(features)[0]
-                # Auto-detect: if model predicts log(count), exp() gives real value >> 5
-                pred_exp = np.exp(pred_raw)
-                prediction = int(pred_exp) if pred_exp > 5 else int(pred_raw)
+                model      = pickle.load(open("bike_model.pkl", "rb"))
+                pred_raw   = model.predict(features)[0]
+                pred_exp   = np.exp(pred_raw)
+                # If exp result is realistic (5–2000) → log-trained model; else use raw
+                prediction = int(pred_exp) if 5 < pred_exp < 2000 else max(0, int(round(pred_raw)))
+
+                # Estimate casual/registered split (typical ~20/80 ratio, adjusted by hour/weekday)
+                casual_ratio = 0.35 if workingday == 0 else 0.18
+                if 7 <= hour <= 9 or 16 <= hour <= 19:
+                    casual_ratio = max(0.08, casual_ratio - 0.08)
+                casual_count     = max(1, int(prediction * casual_ratio))
+                registered_count = max(0, prediction - casual_count)
+
+                # Confidence based on weather & hour (heuristic)
+                base_conf = 95 if weather == 1 else (88 if weather == 2 else (72 if weather == 3 else 55))
+                if hour < 5 or hour > 22: base_conf -= 5
+                confidence = min(99, max(50, base_conf))
+                conf_color = "#14b8a6" if confidence >= 85 else ("#fb923c" if confidence >= 70 else "#f87171")
+
+                # Favorable message
+                if weather == 1 and 10 <= temp_c <= 28:
+                    msg = "✅  High confidence prediction. Weather conditions are favorable."
+                    msg_color = "#4ade80"
+                elif weather >= 3:
+                    msg = "⚠️  Rain detected — demand may be lower than predicted."
+                    msg_color = "#fb923c"
+                else:
+                    msg = "ℹ️  Moderate conditions. Prediction confidence is good."
+                    msg_color = "#38bdf8"
+
+                # Favorability scores (normalized 0-1 for radar)
+                hour_score    = round(min(1, (registered_count / max(prediction,1)) * 1.2), 2)
+                temp_score    = round(max(0, 1 - abs(temp_c - 22) / 25), 2)
+                weather_score = [1, 0.85, 0.5, 0.2][weather-1]
+                weekday_score = 0.75 if workingday == 1 else 0.95
+                humidity_score= round(max(0, 1 - humidity), 2)
+
+                # ── Confidence ring (SVG) ──
+                circ = 2 * 3.14159 * 40
+                dash = round(circ * confidence / 100, 1)
+
                 st.markdown(f"""
-                <div class="result-card">
-                    <div style="font-size:0.65rem;letter-spacing:.14em;text-transform:uppercase;color:#1a4036;margin-bottom:14px;">Estimated Rentals / Hour</div>
-                    <div class="result-num">{prediction:,}</div>
-                    <div style="color:#1a4036;margin-top:8px;font-size:0.8rem;">bikes per hour</div>
-                    <div style="display:flex;gap:10px;margin-top:22px;">
-                        <div style="flex:1;background:rgba(20,184,166,0.07);border-radius:10px;padding:12px;text-align:center;">
-                            <div style="color:#1a4036;font-size:0.65rem;letter-spacing:.1em;text-transform:uppercase;">Season</div>
-                            <div style="color:#e2ecfb;font-weight:600;margin-top:4px;font-size:0.85rem;">{season_names[season]}</div>
+                <style>
+                .pred-main {{
+                    background: linear-gradient(145deg, #0f1826, #0c1522);
+                    border: 1px solid rgba(56,189,248,0.12);
+                    border-radius: 14px;
+                    padding: 24px 26px 18px;
+                    margin-bottom: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }}
+                .pred-split {{
+                    display: flex;
+                    gap: 14px;
+                    margin-bottom: 14px;
+                }}
+                .pred-split-card {{
+                    flex: 1;
+                    background: linear-gradient(145deg, #0f1826, #0c1522);
+                    border: 1px solid rgba(56,189,248,0.1);
+                    border-radius: 12px;
+                    padding: 18px 20px;
+                }}
+                .pred-msg {{
+                    background: rgba(20,184,166,0.05);
+                    border: 1px solid rgba(20,184,166,0.12);
+                    border-radius: 10px;
+                    padding: 12px 16px;
+                    font-size: 0.82rem;
+                    margin-bottom: 14px;
+                }}
+                .favor-card {{
+                    background: linear-gradient(145deg, #0f1826, #0c1522);
+                    border: 1px solid rgba(56,189,248,0.1);
+                    border-radius: 14px;
+                    padding: 20px 22px;
+                }}
+                </style>
+
+                <div class="pred-main">
+                    <div>
+                        <div style="font-size:0.65rem;letter-spacing:.14em;text-transform:uppercase;color:#3a5472;margin-bottom:8px;">Predicted Demand</div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span style="font-size:1.4rem;">🚲</span>
+                            <span style="font-size:3rem;font-weight:800;color:#e2ecfb;font-family:'JetBrains Mono',monospace;line-height:1;">{prediction:,}</span>
                         </div>
-                        <div style="flex:1;background:rgba(20,184,166,0.07);border-radius:10px;padding:12px;text-align:center;">
-                            <div style="color:#1a4036;font-size:0.65rem;letter-spacing:.1em;text-transform:uppercase;">Hour</div>
-                            <div style="color:#e2ecfb;font-weight:600;margin-top:4px;font-size:0.85rem;">{hour:02d}:00</div>
-                        </div>
-                        <div style="flex:1;background:rgba(20,184,166,0.07);border-radius:10px;padding:12px;text-align:center;">
-                            <div style="color:#1a4036;font-size:0.65rem;letter-spacing:.1em;text-transform:uppercase;">Weather</div>
-                            <div style="color:#e2ecfb;font-weight:600;margin-top:4px;font-size:0.85rem;">{weather_names[weather]}</div>
-                        </div>
+                        <div style="color:#3a5472;font-size:0.8rem;margin-top:4px;">bikes / hour</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <svg width="90" height="90" viewBox="0 0 90 90">
+                            <circle cx="45" cy="45" r="40" fill="none" stroke="rgba(56,189,248,0.1)" stroke-width="8"/>
+                            <circle cx="45" cy="45" r="40" fill="none" stroke="{conf_color}" stroke-width="8"
+                                stroke-dasharray="{dash} {circ}"
+                                stroke-dashoffset="{circ*0.25}"
+                                stroke-linecap="round"/>
+                            <text x="45" y="40" text-anchor="middle" fill="{conf_color}" font-size="16" font-weight="800" font-family="JetBrains Mono">{confidence}%</text>
+                            <text x="45" y="56" text-anchor="middle" fill="#3a5472" font-size="9" font-family="Plus Jakarta Sans">confidence</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="pred-split">
+                    <div class="pred-split-card">
+                        <div style="font-size:0.65rem;letter-spacing:.12em;text-transform:uppercase;color:#3a5472;margin-bottom:8px;">👥 Casual Riders</div>
+                        <div style="font-size:2rem;font-weight:800;color:#a78bfa;font-family:'JetBrains Mono',monospace;">{casual_count:,}</div>
+                    </div>
+                    <div class="pred-split-card">
+                        <div style="font-size:0.65rem;letter-spacing:.12em;text-transform:uppercase;color:#3a5472;margin-bottom:8px;">📈 Registered</div>
+                        <div style="font-size:2rem;font-weight:800;color:#38bdf8;font-family:'JetBrains Mono',monospace;">{registered_count:,}</div>
+                    </div>
+                </div>
+
+                <div class="pred-msg">
+                    <span style="color:{msg_color};">{msg}</span>
+                </div>
+
+                <div class="favor-card">
+                    <div style="font-size:0.9rem;font-weight:700;color:#e2ecfb;margin-bottom:14px;">Feature Favorability</div>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        {"".join([
+                            f'''<div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                    <span style="font-size:0.78rem;color:#5a7595;">{label}</span>
+                                    <span style="font-size:0.78rem;color:#e2ecfb;font-weight:600;">{int(score*100)}%</span>
+                                </div>
+                                <div style="background:rgba(56,189,248,0.08);border-radius:6px;height:6px;overflow:hidden;">
+                                    <div style="width:{int(score*100)}%;height:100%;background:linear-gradient(90deg,{bar_color},rgba(56,189,248,0.5));border-radius:6px;"></div>
+                                </div>
+                            </div>'''
+                            for label, score, bar_color in [
+                                ("Hour", hour_score, "#38bdf8"),
+                                ("Temperature", temp_score, "#4ade80"),
+                                ("Weather", weather_score, "#14b8a6"),
+                                ("Weekday", weekday_score, "#a78bfa"),
+                                ("Humidity", humidity_score, "#fb923c"),
+                            ]
+                        ])}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+
             except FileNotFoundError:
                 st.markdown("""
                 <div class="result-card" style="opacity:0.7;">
                     <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
                     <div style="color:#fb923c;font-weight:600;">bike_model.pkl not found</div>
-                    <div style="color:#3a5472;font-size:0.8rem;margin-top:8px;">Place your model in the same folder as app.py</div>
+                    <div style="color:#3a5472;font-size:0.8rem;margin-top:8px;">Place your trained model in the same folder as app.py</div>
                 </div>
                 """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Prediction error: {e}")
         else:
             st.markdown("""
-            <div class="result-card" style="opacity:0.4;">
-                <div style="font-size:2.4rem;margin-bottom:14px;">🔮</div>
-                <div style="color:#3a5472;font-size:0.88rem;">Fill in the conditions<br>and click Predict</div>
+            <div style="background:linear-gradient(145deg,#0f1826,#0c1522);border:1px solid rgba(56,189,248,0.09);
+                border-radius:14px;padding:60px 30px;text-align:center;opacity:0.5;">
+                <div style="font-size:3rem;margin-bottom:16px;">🔮</div>
+                <div style="color:#3a5472;font-size:0.9rem;line-height:1.6;">
+                    Configure conditions on the left<br>and click <b style="color:#5a7595;">Predict</b> to see results
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
