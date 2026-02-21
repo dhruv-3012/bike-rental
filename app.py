@@ -427,8 +427,10 @@ elif "Predict" in page:
         if predict_btn:
             try:
                 model = pickle.load(open("bike_model.pkl", "rb"))
-                pred_log = model.predict(features)
-                prediction = int(np.exp(pred_log)[0])
+                pred_raw = model.predict(features)[0]
+                # Auto-detect: if model predicts log(count), exp() gives real value >> 5
+                pred_exp = np.exp(pred_raw)
+                prediction = int(pred_exp) if pred_exp > 5 else int(pred_raw)
                 st.markdown(f"""
                 <div class="result-card">
                     <div style="font-size:0.65rem;letter-spacing:.14em;text-transform:uppercase;color:#1a4036;margin-bottom:14px;">Estimated Rentals / Hour</div>
