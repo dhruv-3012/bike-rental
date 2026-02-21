@@ -413,7 +413,7 @@ elif "Predict" in page:
             humidity = st.number_input("Humidity (norm.)", 0.0, 1.0, 0.5, 0.01)
             windspeed = st.number_input("Wind Speed (norm.)", 0.0, 1.0, 0.2, 0.01)
 
-        hour = st.slider("Hour of Day", 0, 23, 17, format_func=lambda x: f"{x:02d}:00")
+        hour = st.slider("Hour of Day (0–23)", 0, 23, 17)
         st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         predict_btn = st.button("🔮  Predict Rental Demand")
