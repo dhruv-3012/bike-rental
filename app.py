@@ -437,11 +437,21 @@ elif "Predict" in page:
 
         if predict_btn:
             try:
-                model      = pickle.load(open("bike_model.pkl", "rb"))
-                pred_raw   = model.predict(features)[0]
-                pred_exp   = np.exp(pred_raw)
-                # If exp result is realistic (5–2000) → log-trained model; else use raw
-                prediction = int(pred_exp) if 5 < pred_exp < 2000 else max(0, int(round(pred_raw)))
+                model    = pickle.load(open("bike_model.pkl", "rb"))
+                pred_raw = model.predict(features)[0]
+
+                st.caption(f"🔍 Debug — raw model output: `{pred_raw:.4f}`")
+
+                # Smart detection of model output type:
+                # log(count) models output ~3-9 (exp gives realistic 20-8000)
+                # normalized models output 0.0-1.5
+                # raw count models output actual integers or large floats
+                if 3.0 <= pred_raw <= 9.0:
+                    prediction = max(1, int(round(np.exp(pred_raw))))
+                elif pred_raw <= 1.5:
+                    prediction = max(1, int(round(pred_raw * 977)))
+                else:
+                    prediction = max(1, int(round(pred_raw)))
 
                 # Estimate casual/registered split (typical ~20/80 ratio, adjusted by hour/weekday)
                 casual_ratio = 0.35 if workingday == 0 else 0.18
