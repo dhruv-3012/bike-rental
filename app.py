@@ -30,10 +30,11 @@ html, body, [class*="css"] {
 .stApp { background: #080c18 !important; }
 #MainMenu, footer, header { visibility: hidden; }
 
-/* ── Hide sidebar collapse / close button ── */
-[data-testid="collapsedControl"]          { display: none !important; }
-button[data-testid="baseButton-header"]   { display: none !important; }
-[data-testid="stSidebar"] button[kind]    { display: none !important; }
+/* ── Always keep sidebar open, hide only the << collapse arrow ── */
+/* Hide the floating collapse toggle that appears outside the sidebar */
+[data-testid="collapsedControl"] { display: none !important; }
+/* Hide the << chevron button inside the sidebar header */
+[data-testid="stSidebar"] > div > div > div > button { display: none !important; }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
@@ -679,4 +680,3 @@ elif "Analytics" in page:
                 <div style="font-size:0.76rem;color:#3a5472;line-height:1.5;">{body}</div>
             </div>
             """, unsafe_allow_html=True)
-            
