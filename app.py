@@ -30,6 +30,11 @@ html, body, [class*="css"] {
 .stApp { background: #080c18 !important; }
 #MainMenu, footer, header { visibility: hidden; }
 
+/* ── Hide sidebar collapse / close button ── */
+[data-testid="collapsedControl"]          { display: none !important; }
+button[data-testid="baseButton-header"]   { display: none !important; }
+[data-testid="stSidebar"] button[kind]    { display: none !important; }
+
 /* Sidebar */
 [data-testid="stSidebar"] {
     background: #0c1220 !important;
@@ -674,3 +679,4 @@ elif "Analytics" in page:
                 <div style="font-size:0.76rem;color:#3a5472;line-height:1.5;">{body}</div>
             </div>
             """, unsafe_allow_html=True)
+            
