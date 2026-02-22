@@ -99,38 +99,41 @@ html, body, [class*="css"] {
     margin-bottom: 24px;
 }
 
-/* Override streamlit button styles for nav */
-div[data-testid="stHorizontalBlock"] .stButton > button {
+/* Radio nav styling - tab style with large icons */
+div[data-testid="stRadio"] > label { display: none !important; }
+div[data-testid="stRadio"] > div {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
     background: transparent !important;
-    border: none !important;
-    border-bottom: 2px solid transparent !important;
-    border-radius: 0 !important;
-    color: #5a7595 !important;
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    padding: 10px 20px !important;
-    width: auto !important;
-    margin-top: 0 !important;
-    letter-spacing: 0.04em !important;
-    transition: all 0.2s !important;
-    line-height: 1.5 !important;
-    white-space: pre-line !important;
 }
-div[data-testid="stHorizontalBlock"] .stButton > button:hover {
+div[data-testid="stRadio"] label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 28px !important;
+    border-bottom: 2px solid transparent !important;
+    color: #5a7595 !important;
+    font-size: 1.35rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    white-space: nowrap !important;
+}
+div[data-testid="stRadio"] label:hover {
     color: #c8d6e8 !important;
     border-bottom: 2px solid rgba(56,189,248,0.4) !important;
-    transform: none !important;
 }
-/* Make the emoji (first line) bigger */
-div[data-testid="stHorizontalBlock"] .stButton > button p {
-    font-size: 0.82rem !important;
-    line-height: 1.5 !important;
-    margin: 0 !important;
-    white-space: pre-line !important;
+/* Hide the radio circle dot */
+div[data-testid="stRadio"] label > div:first-child {
+    display: none !important;
 }
-/* Target emoji using first-line pseudo */
-div[data-testid="stHorizontalBlock"] .stButton > button::first-line {
-    font-size: 2rem !important;
+/* Active/checked tab */
+div[data-testid="stRadio"] label:has(input:checked) {
+    color: #38bdf8 !important;
+    border-bottom: 2px solid #38bdf8 !important;
 }
 
 /* KPI cards */
@@ -252,33 +255,35 @@ if 'page' not in st.session_state:
 # ─────────────────────────────────────────────
 #  TOP NAVIGATION BAR
 # ─────────────────────────────────────────────
-header_col, nav_col = st.columns([2, 5])
-with header_col:
+header_row, status_col = st.columns([6, 1])
+with header_row:
     st.markdown('<div class="main-header">🚲 Bike Rental AI</div>', unsafe_allow_html=True)
-
-nav_options = [
-    ("📊\nDashboard", "📊 Dashboard", "Dashboard"),
-    ("🌤\nWeather", "🌤 Weather", "Weather Forecast"),
-    ("🔮\nPredict", "🔮 Predict", "Predict Demand"),
-    ("📈\nAnalytics", "📈 Analytics", "Analytics"),
-]
-nav_cols = st.columns(len(nav_options) + 2)
-
-for i, (label, option, page_name) in enumerate(nav_options):
-    with nav_cols[i]:
-        if st.button(label, key=f"nav_{option}", use_container_width=True):
-            st.session_state.page = page_name
-            st.rerun()
-
-with nav_cols[-1]:
+with status_col:
     st.markdown("""
-    <div style="padding:6px 12px;background:rgba(20,184,166,0.05);border:1px solid rgba(20,184,166,0.13);border-radius:10px;display:flex;align-items:center;gap:8px;margin-top:4px;">
-        <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e;display:inline-block;"></span>
-        <span style="color:#7a91b0;font-size:0.78rem;">Active · Ready</span>
+    <div style="padding:6px 12px;background:rgba(20,184,166,0.05);border:1px solid rgba(20,184,166,0.13);border-radius:10px;display:flex;align-items:center;gap:8px;margin-top:10px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e;display:inline-block;flex-shrink:0;"></span>
+        <span style="color:#7a91b0;font-size:0.78rem;white-space:nowrap;">Active · Ready</span>
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown('<hr style="border:none;border-top:1px solid rgba(56,189,248,0.10);margin:8px 0 20px 0;">', unsafe_allow_html=True)
+# Navigation using st.radio styled as tabs
+nav_pages = ["Dashboard", "Weather Forecast", "Predict Demand", "Analytics"]
+nav_labels = ["📊  Dashboard", "🌤  Weather", "🔮  Predict", "📈  Analytics"]
+
+selected = st.radio(
+    label="nav",
+    options=nav_pages,
+    format_func=lambda x: nav_labels[nav_pages.index(x)],
+    horizontal=True,
+    label_visibility="collapsed",
+    index=nav_pages.index(st.session_state.page) if st.session_state.page in nav_pages else 0,
+    key="nav_radio"
+)
+if selected != st.session_state.page:
+    st.session_state.page = selected
+    st.rerun()
+
+st.markdown('<hr style="border:none;border-top:1px solid rgba(56,189,248,0.10);margin:4px 0 20px 0;">', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 #  PAGE CONTENT
