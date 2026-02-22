@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pickle
 import numpy as np
@@ -28,21 +29,17 @@ html, body, [class*="css"] {
     color: #c8d6e8 !important;
 }
 .stApp { background: #080c18 !important; }
-#MainMenu, footer, header { visibility: hidden; }
 
 /* ══════════════════════════════════════════
-   SIDEBAR — permanently open, << btn hidden
+   FIX: Only hide MainMenu and footer. 
+   Keeping 'header' visible allows the sidebar 
+   toggle (>>) to be clicked when collapsed.
    ══════════════════════════════════════════ */
-/* Hide ONLY the close-arrow button that lives inside the sidebar */
-[data-testid="stSidebar"] button[data-testid="baseButton-header"] {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-}
-[data-testid="stSidebar"] button[aria-label="Close sidebar"] {
-    display: none !important;
-}
-/* Sidebar base styles */
+#MainMenu, footer { visibility: hidden; }
+
+/* ══════════════════════════════════════════
+   SIDEBAR — Styling only, no hiding buttons
+   ══════════════════════════════════════════ */
 [data-testid="stSidebar"] {
     background: #0c1220 !important;
     border-right: 1px solid rgba(56,189,248,0.1) !important;
