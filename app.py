@@ -6,13 +6,13 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # ─────────────────────────────────────────────
-#  PAGE CONFIG
+#  PAGE CONFIG  (must be first Streamlit call)
 # ─────────────────────────────────────────────
 st.set_page_config(
     page_title="Bike Rental AI",
     page_icon="🚲",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # ─────────────────────────────────────────────
@@ -30,13 +30,19 @@ html, body, [class*="css"] {
 .stApp { background: #080c18 !important; }
 #MainMenu, footer, header { visibility: hidden; }
 
-/* ── Always keep sidebar open, hide only the << collapse arrow ── */
-/* Hide the floating collapse toggle that appears outside the sidebar */
-[data-testid="collapsedControl"] { display: none !important; }
-/* Hide the << chevron button inside the sidebar header */
-[data-testid="stSidebar"] > div > div > div > button { display: none !important; }
-
-/* Sidebar */
+/* ══════════════════════════════════════════
+   SIDEBAR — permanently open, << btn hidden
+   ══════════════════════════════════════════ */
+/* Hide ONLY the close-arrow button that lives inside the sidebar */
+[data-testid="stSidebar"] button[data-testid="baseButton-header"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+[data-testid="stSidebar"] button[aria-label="Close sidebar"] {
+    display: none !important;
+}
+/* Sidebar base styles */
 [data-testid="stSidebar"] {
     background: #0c1220 !important;
     border-right: 1px solid rgba(56,189,248,0.1) !important;
@@ -66,7 +72,7 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] .stRadio [data-testid="stMarkdownContainer"] p { margin: 0 !important; }
 [data-testid="stSidebar"] .stRadio [data-baseweb="radio"] > div:first-child { display: none !important; }
 
-/* KPI cards */
+/* ── KPI cards ── */
 .kpi-card {
     background: linear-gradient(145deg, #111827, #0f1c2e);
     border: 1px solid rgba(56,189,248,0.12);
@@ -98,11 +104,11 @@ html, body, [class*="css"] {
     line-height: 1;
     margin-bottom: 6px;
 }
-.kpi-sub { font-size: 0.74rem; color: #2e4461; }
+.kpi-sub  { font-size: 0.74rem; color: #2e4461; }
 .kpi-icon { position: absolute; top: 16px; right: 18px; font-size: 1.35rem; opacity: 0.5; }
 
 .sec-title { font-size: 1rem; font-weight: 700; color: #e2ecfb; margin-bottom: 2px; }
-.sec-sub { font-size: 0.76rem; color: #3a5472; margin-bottom: 12px; }
+.sec-sub   { font-size: 0.76rem; color: #3a5472; margin-bottom: 12px; }
 
 .chart-card {
     background: linear-gradient(145deg, #0f1826, #0c1522);
@@ -110,30 +116,14 @@ html, body, [class*="css"] {
     border-radius: 14px;
     padding: 20px 18px 10px;
 }
-
-/* Form & result */
 .form-card {
     background: #0f1826;
     border: 1px solid rgba(56,189,248,0.1);
     border-radius: 14px;
     padding: 24px 20px;
 }
-.result-card {
-    background: linear-gradient(145deg, #0a1f14, #071510);
-    border: 1px solid rgba(20,184,166,0.22);
-    border-radius: 14px;
-    padding: 30px 22px;
-    text-align: center;
-}
-.result-num {
-    font-size: 3.4rem;
-    font-weight: 800;
-    color: #2dd4bf;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1;
-}
 
-/* Widget styling */
+/* ── Widget styling ── */
 label, .stSelectbox label, .stNumberInput label, .stSlider label {
     color: #5a7595 !important;
     font-size: 0.8rem !important;
@@ -151,8 +141,9 @@ label, .stSelectbox label, .stNumberInput label, .stSlider label {
     border-radius: 9px !important;
     color: #c8d6e8 !important;
 }
+.stSlider > div > div > div > div { background: #38bdf8 !important; }
 
-/* Predict button */
+/* ── Predict button ── */
 .stButton > button {
     background: linear-gradient(90deg, #14b8a6, #38bdf8) !important;
     color: #040810 !important;
@@ -170,14 +161,14 @@ label, .stSelectbox label, .stNumberInput label, .stSlider label {
 
 
 # ─────────────────────────────────────────────
-#  DATA
+#  STATIC DATA
 # ─────────────────────────────────────────────
-hours = list(range(24))
-registered = [12,6,4,3,4,18,70,155,185,130,108,112,118,105,112,122,178,192,155,108,84,62,42,22]
-casual      = [4, 2,1,1,2, 6,12, 25, 42, 52, 58, 62, 65, 63, 60, 58, 52, 48, 38, 28,22,16,10, 5]
-months_label = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-total_rentals= [40200,22000,52000,72000,96000,115000,138000,135000,138000,104000,72000,25000]
-avg_temp     = [4,5,9,15,19,24,27,26,21,15,9,5]
+hours         = list(range(24))
+registered    = [12,6,4,3,4,18,70,155,185,130,108,112,118,105,112,122,178,192,155,108,84,62,42,22]
+casual        = [4, 2,1,1,2, 6,12, 25, 42, 52, 58, 62, 65, 63, 60, 58, 52, 48, 38, 28,22,16,10, 5]
+months_label  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+total_rentals = [40200,22000,52000,72000,96000,115000,138000,135000,138000,104000,72000,25000]
+avg_temp      = [4,5,9,15,19,24,27,26,21,15,9,5]
 
 C = {
     'teal':'#14b8a6','cyan':'#38bdf8','purple':'#a78bfa',
@@ -199,6 +190,9 @@ BASE_LAYOUT = dict(
 )
 
 
+# ─────────────────────────────────────────────
+#  HELPERS
+# ─────────────────────────────────────────────
 def kpi(icon, label, value, sub, accent):
     st.markdown(f"""
     <div class="kpi-card" style="--accent:{accent}">
@@ -208,8 +202,12 @@ def kpi(icon, label, value, sub, accent):
         <div class="kpi-sub">{sub}</div>
     </div>""", unsafe_allow_html=True)
 
-def sec(title, sub):
-    st.markdown(f'<div class="sec-title">{title}</div><div class="sec-sub">{sub}</div>', unsafe_allow_html=True)
+def sec(title, sub=""):
+    st.markdown(
+        f'<div class="sec-title">{title}</div>'
+        f'<div class="sec-sub">{sub}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # ─────────────────────────────────────────────
@@ -221,9 +219,12 @@ with st.sidebar:
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:30px;">
             <span style="font-size:1.6rem;">🚲</span>
             <span style="font-size:1.15rem;font-weight:800;color:#e2ecfb;letter-spacing:-0.01em;">Bike Rental</span>
-            <span style="background:linear-gradient(90deg,#14b8a6,#38bdf8);color:#040810;font-size:0.58rem;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.06em;">AI</span>
+            <span style="background:linear-gradient(90deg,#14b8a6,#38bdf8);color:#040810;
+                         font-size:0.58rem;font-weight:800;padding:2px 7px;border-radius:6px;
+                         letter-spacing:.06em;">AI</span>
         </div>
-        <div style="font-size:0.62rem;letter-spacing:.13em;text-transform:uppercase;color:#1e3050;padding:0 4px;margin-bottom:8px;">Navigation</div>
+        <div style="font-size:0.62rem;letter-spacing:.13em;text-transform:uppercase;
+                    color:#1e3050;padding:0 4px;margin-bottom:8px;">Navigation</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -231,15 +232,18 @@ with st.sidebar:
         "📊  Dashboard",
         "🌤  Weather Forecast",
         "🔮  Predict Demand",
-        "📈  Analytics"
+        "📈  Analytics",
     ], label_visibility="collapsed")
 
     st.markdown("""
     <div style="padding:16px 20px;margin-top:20px;">
-        <div style="background:rgba(20,184,166,0.05);border:1px solid rgba(20,184,166,0.13);border-radius:12px;padding:14px 16px;">
-            <div style="font-size:0.62rem;letter-spacing:.12em;text-transform:uppercase;color:#1e3050;margin-bottom:8px;">Model Status</div>
+        <div style="background:rgba(20,184,166,0.05);border:1px solid rgba(20,184,166,0.13);
+                    border-radius:12px;padding:14px 16px;">
+            <div style="font-size:0.62rem;letter-spacing:.12em;text-transform:uppercase;
+                        color:#1e3050;margin-bottom:8px;">Model Status</div>
             <div style="display:flex;align-items:center;gap:8px;">
-                <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e;flex-shrink:0;"></span>
+                <span style="display:inline-block;width:7px;height:7px;border-radius:50%;
+                             background:#22c55e;box-shadow:0 0 7px #22c55e;flex-shrink:0;"></span>
                 <span style="color:#7a91b0;font-size:0.81rem;font-weight:500;">Active · Ready</span>
             </div>
             <div style="margin-top:8px;font-size:0.72rem;color:#1e3050;">Random Forest · v2.1</div>
@@ -249,18 +253,23 @@ with st.sidebar:
 
 
 # ─────────────────────────────────────────────
-#  DASHBOARD
+#  PAGE: DASHBOARD
 # ─────────────────────────────────────────────
 if "Dashboard" in page:
 
-    col_h, col_w = st.columns([5,1])
+    col_h, col_w = st.columns([5, 1])
     with col_h:
-        st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;line-height:1.1;">Bike Rental Dashboard</div>', unsafe_allow_html=True)
-        st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:18px;">Historical analysis · 365 days · 8,760 hourly records</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;line-height:1.1;">'
+                    'Bike Rental Dashboard</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:18px;">'
+                    'Historical analysis · 365 days · 8,760 hourly records</div>', unsafe_allow_html=True)
     with col_w:
-        st.markdown('<div style="text-align:right;padding-top:6px;"><span style="background:linear-gradient(90deg,#fef3c7,#fde68a);color:#92400e;border-radius:30px;padding:7px 16px;font-weight:700;font-size:0.82rem;">☀️ Clear 22°C</span></div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align:right;padding-top:6px;">'
+                    '<span style="background:linear-gradient(90deg,#fef3c7,#fde68a);color:#92400e;'
+                    'border-radius:30px;padding:7px 16px;font-weight:700;font-size:0.82rem;">'
+                    '☀️ Clear 22°C</span></div>', unsafe_allow_html=True)
 
-    c1,c2,c3,c4 = st.columns(4, gap="small")
+    c1, c2, c3, c4 = st.columns(4, gap="small")
     with c1: kpi("🚲","Total Rentals","1,058,318","Past 12 months","linear-gradient(90deg,#14b8a6,#38bdf8)")
     with c2: kpi("📈","Avg Daily","2,900","Rentals per day","linear-gradient(90deg,#a78bfa,#818cf8)")
     with c3: kpi("⏰","Peak Hour","17:00","Avg 257 bikes / hr","linear-gradient(90deg,#fb923c,#f59e0b)")
@@ -268,10 +277,8 @@ if "Dashboard" in page:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Hourly chart
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
     sec("Average Hourly Demand Pattern", "Registered vs Casual riders across 24 hours")
-
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(
         x=hours, y=registered, name="Registered",
@@ -287,39 +294,32 @@ if "Dashboard" in page:
         fillcolor='rgba(167,139,250,0.13)',
         hovertemplate='<b>Casual</b>: %{y}'
     ))
-    lay1 = {**BASE_LAYOUT}
-    lay1['height'] = 295
-    lay1['margin'] = dict(l=10,r=10,t=6,b=40)
-    lay1['xaxis'] = dict(
-        tickvals=hours, ticktext=[f"{h}h" for h in hours],
-        gridcolor=C['grid'], color=C['muted'], showline=False
-    )
-    lay1['yaxis'] = dict(range=[0,215], gridcolor=C['grid'], color=C['muted'])
-    fig1.update_layout(**lay1)
+    fig1.update_layout(**{**BASE_LAYOUT,
+        'height': 295, 'margin': dict(l=10,r=10,t=6,b=40),
+        'xaxis': dict(tickvals=hours, ticktext=[f"{h}h" for h in hours],
+                      gridcolor=C['grid'], color=C['muted'], showline=False),
+        'yaxis': dict(range=[0,215], gridcolor=C['grid'], color=C['muted'])
+    })
     st.plotly_chart(fig1, use_container_width=True, config={'displayModeBar':False})
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     col_l, col_r = st.columns(2, gap="medium")
-
     with col_l:
         st.markdown('<div class="chart-card">', unsafe_allow_html=True)
         sec("Weather Impact on Demand", "Average hourly rentals by weather condition")
         fig2 = go.Figure(go.Bar(
-            x=['Clear','Cloudy','Light Rain','Heavy Rain'],
-            y=[118, 112, 106, 14],
-            marker_color=[C['orange'], '#94a3b8', '#60a5fa', C['purple']],
+            x=['Clear','Cloudy','Light Rain','Heavy Rain'], y=[118,112,106,14],
+            marker_color=[C['orange'],'#94a3b8','#60a5fa',C['purple']],
             marker_line_width=0,
             hovertemplate='%{x}: <b>%{y}</b> avg rentals<extra></extra>'
         ))
-        lay2 = {**BASE_LAYOUT}
-        lay2['height'] = 280
-        lay2['margin'] = dict(l=10,r=10,t=6,b=10)
-        lay2['yaxis'] = dict(gridcolor=C['grid'], color=C['muted'], range=[0,145])
-        lay2['bargap'] = 0.35
-        lay2['showlegend'] = False
-        fig2.update_layout(**lay2)
+        fig2.update_layout(**{**BASE_LAYOUT,
+            'height':280, 'margin':dict(l=10,r=10,t=6,b=10),
+            'yaxis':dict(gridcolor=C['grid'], color=C['muted'], range=[0,145]),
+            'bargap':0.35, 'showlegend':False
+        })
         st.plotly_chart(fig2, use_container_width=True, config={'displayModeBar':False})
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -327,32 +327,28 @@ if "Dashboard" in page:
         st.markdown('<div class="chart-card">', unsafe_allow_html=True)
         sec("Seasonal Split", "Avg daily rentals by season")
         fig3 = go.Figure(go.Pie(
-            labels=['Spring','Summer','Fall','Winter'],
-            values=[27,34,28,12],
-            hole=0.0,
-            marker=dict(
-                colors=[C['green'], C['orange'], '#fb923c', '#60a5fa'],
-                line=dict(color='#0c1522', width=2.5)
-            ),
+            labels=['Spring','Summer','Fall','Winter'], values=[27,34,28,12], hole=0.0,
+            marker=dict(colors=[C['green'],C['orange'],'#fb923c','#60a5fa'],
+                        line=dict(color='#0c1522', width=2.5)),
             textinfo='label+percent',
             textfont=dict(size=13, color='#e2ecfb'),
             hovertemplate='<b>%{label}</b>: %{value}%<extra></extra>'
         ))
-        lay3 = {**BASE_LAYOUT}
-        lay3['height'] = 280
-        lay3['margin'] = dict(l=10,r=10,t=6,b=10)
-        lay3['showlegend'] = False
-        fig3.update_layout(**lay3)
+        fig3.update_layout(**{**BASE_LAYOUT,
+            'height':280, 'margin':dict(l=10,r=10,t=6,b=10), 'showlegend':False
+        })
         st.plotly_chart(fig3, use_container_width=True, config={'displayModeBar':False})
         st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
-#  WEATHER FORECAST
+#  PAGE: WEATHER FORECAST
 # ─────────────────────────────────────────────
 elif "Weather" in page:
-    st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">Weather Forecast</div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:22px;">7-day outlook and estimated impact on bike demand</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">'
+                'Weather Forecast</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:22px;">'
+                '7-day outlook and estimated impact on bike demand</div>', unsafe_allow_html=True)
 
     days    = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
     icons   = ["☀️","⛅","🌧️","☀️","☀️","⛅","🌤️"]
@@ -371,8 +367,7 @@ elif "Weather" in page:
                 <div style="font-weight:700;color:#e2ecfb;font-size:0.95rem;">{highs[i]}°C</div>
                 <div style="font-size:0.72rem;color:#3a5472;">{lows[i]}°C low</div>
                 <div style="margin-top:10px;font-size:0.82rem;font-weight:700;color:{icolors[i]};">{impacts[i]}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
@@ -382,53 +377,55 @@ elif "Weather" in page:
         marker_color=C['cyan'], marker_line_width=0,
         hovertemplate='%{x}: <b>%{y:,}</b> est. rentals<extra></extra>'
     ))
-    lay_w = {**BASE_LAYOUT}
-    lay_w['height'] = 240
-    lay_w['margin'] = dict(l=10,r=10,t=6,b=10)
-    lay_w['showlegend'] = False
-    lay_w['bargap'] = 0.3
-    fig_w.update_layout(**lay_w)
+    fig_w.update_layout(**{**BASE_LAYOUT,
+        'height':240, 'margin':dict(l=10,r=10,t=6,b=10),
+        'showlegend':False, 'bargap':0.3
+    })
     st.plotly_chart(fig_w, use_container_width=True, config={'displayModeBar':False})
     st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
-#  PREDICT DEMAND
+#  PAGE: PREDICT DEMAND
 # ─────────────────────────────────────────────
 elif "Predict" in page:
-    st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">Predict Demand</div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:18px;">Enter conditions to forecast hourly bike rentals</div>', unsafe_allow_html=True)
-
-    season_names  = {1:"Spring", 2:"Summer", 3:"Fall", 4:"Winter"}
-    weather_names = {1:"Clear",  2:"Cloudy", 3:"Light Rain", 4:"Heavy Rain"}
+    st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">'
+                'Predict Demand</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:18px;">'
+                'Enter conditions to forecast hourly bike rentals</div>', unsafe_allow_html=True)
 
     col_inputs, col_results = st.columns([1, 2], gap="large")
 
-    # ── LEFT: Input panel ──────────────────────
+    # ── Inputs ───────────────────────────────
     with col_inputs:
         st.markdown('<div class="form-card">', unsafe_allow_html=True)
-        st.markdown('<div style="font-size:0.95rem;font-weight:700;color:#e2ecfb;margin-bottom:16px;">Input Features</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.95rem;font-weight:700;color:#e2ecfb;margin-bottom:16px;">'
+                    'Input Features</div>', unsafe_allow_html=True)
 
         hour       = st.selectbox("Hour of Day", list(range(24)),
                         index=8, format_func=lambda x: f"{x:02d}:00")
-        workingday = st.selectbox("Day Type", [1, 0],
+        workingday = st.selectbox("Day Type", [1,0],
                         format_func=lambda x: "Weekday" if x==1 else "Weekend")
-        month      = st.selectbox("Month", list(range(1,13)),
-                        index=5, format_func=lambda x: ['Jan','Feb','Mar','Apr','May','Jun',
-                                                         'Jul','Aug','Sep','Oct','Nov','Dec'][x-1])
+        month      = st.selectbox("Month", list(range(1,13)), index=5,
+                        format_func=lambda x: ['Jan','Feb','Mar','Apr','May','Jun',
+                                               'Jul','Aug','Sep','Oct','Nov','Dec'][x-1])
         weather    = st.selectbox("Weather Condition", [1,2,3,4],
-                        format_func=lambda x:{1:"Clear / Sunny",2:"Cloudy / Mist",
-                                              3:"Light Rain",4:"Heavy Rain"}[x])
+                        format_func=lambda x: {1:"Clear / Sunny",2:"Cloudy / Mist",
+                                               3:"Light Rain",4:"Heavy Rain"}[x])
         temp_c     = st.slider("Temperature (°C)", -5, 40, 22)
-        temp       = round((temp_c + 8) / 47, 4)   # approx denormalize
+        temp       = round((temp_c + 8) / 47, 4)
         atemp      = round(temp * 0.97, 4)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div style="font-size:0.75rem;color:#3a5472;margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase;">More Options</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size:0.75rem;color:#3a5472;margin-bottom:8px;'
+                    'letter-spacing:.08em;text-transform:uppercase;">More Options</div>',
+                    unsafe_allow_html=True)
+
         season    = st.selectbox("Season", [1,2,3,4],
-                        format_func=lambda x:{1:"🌸 Spring",2:"☀️ Summer",3:"🍂 Fall",4:"❄️ Winter"}[x])
-        yr        = st.selectbox("Year", [0,1], format_func=lambda x:"2011" if x==0 else "2012")
-        holiday   = st.selectbox("Holiday", [0,1], format_func=lambda x:"No" if x==0 else "Yes")
+                        format_func=lambda x: {1:"🌸 Spring",2:"☀️ Summer",
+                                               3:"🍂 Fall",4:"❄️ Winter"}[x])
+        yr        = st.selectbox("Year", [0,1], format_func=lambda x: "2011" if x==0 else "2012")
+        holiday   = st.selectbox("Holiday", [0,1], format_func=lambda x: "No" if x==0 else "Yes")
         humidity  = st.slider("Humidity (%)", 0, 100, 55) / 100
         windspeed = st.slider("Wind Speed", 0, 67, 15) / 67
 
@@ -436,7 +433,7 @@ elif "Predict" in page:
         st.markdown("<br>", unsafe_allow_html=True)
         predict_btn = st.button("🔮  Predict Rental Demand")
 
-    # ── RIGHT: Results panel ───────────────────
+    # ── Results ──────────────────────────────
     with col_results:
         features = np.array([[season, yr, month, holiday, workingday,
                                weather, temp, atemp, humidity, windspeed, hour]])
@@ -446,10 +443,7 @@ elif "Predict" in page:
                 model    = pickle.load(open("bike_model.pkl", "rb"))
                 pred_raw = model.predict(features)[0]
 
-                # Smart detection of model output type:
-                # log(count) models output ~3-9 (exp gives realistic 20-8000)
-                # normalized models output 0.0-1.5
-                # raw count models output actual integers or large floats
+                # Auto-detect output scale
                 if 3.0 <= pred_raw <= 9.0:
                     prediction = max(1, int(round(np.exp(pred_raw))))
                 elif pred_raw <= 1.5:
@@ -457,40 +451,58 @@ elif "Predict" in page:
                 else:
                     prediction = max(1, int(round(pred_raw)))
 
-                # Estimate casual/registered split (typical ~20/80 ratio, adjusted by hour/weekday)
+                # Casual / registered split
                 casual_ratio = 0.35 if workingday == 0 else 0.18
                 if 7 <= hour <= 9 or 16 <= hour <= 19:
                     casual_ratio = max(0.08, casual_ratio - 0.08)
                 casual_count     = max(1, int(prediction * casual_ratio))
                 registered_count = max(0, prediction - casual_count)
 
-                # Confidence based on weather & hour (heuristic)
-                base_conf = 95 if weather == 1 else (88 if weather == 2 else (72 if weather == 3 else 55))
+                # Confidence
+                base_conf  = {1:95, 2:88, 3:72, 4:55}[weather]
                 if hour < 5 or hour > 22: base_conf -= 5
                 confidence = min(99, max(50, base_conf))
-                conf_color = "#14b8a6" if confidence >= 85 else ("#fb923c" if confidence >= 70 else "#f87171")
+                conf_color = ("#14b8a6" if confidence >= 85
+                              else "#fb923c" if confidence >= 70 else "#f87171")
 
-                # Favorable message
+                # Status message
                 if weather == 1 and 10 <= temp_c <= 28:
-                    msg = "✅  High confidence prediction. Weather conditions are favorable."
-                    msg_color = "#4ade80"
+                    msg, msg_color = "✅  High confidence prediction. Weather conditions are favorable.", "#4ade80"
                 elif weather >= 3:
-                    msg = "⚠️  Rain detected — demand may be lower than predicted."
-                    msg_color = "#fb923c"
+                    msg, msg_color = "⚠️  Rain detected — demand may be lower than predicted.", "#fb923c"
                 else:
-                    msg = "ℹ️  Moderate conditions. Prediction confidence is good."
-                    msg_color = "#38bdf8"
+                    msg, msg_color = "ℹ️  Moderate conditions. Prediction confidence is good.", "#38bdf8"
 
-                # Favorability scores (normalized 0-1 for radar)
-                hour_score    = round(min(1, (registered_count / max(prediction,1)) * 1.2), 2)
-                temp_score    = round(max(0, 1 - abs(temp_c - 22) / 25), 2)
-                weather_score = [1, 0.85, 0.5, 0.2][weather-1]
-                weekday_score = 0.75 if workingday == 1 else 0.95
-                humidity_score= round(max(0, 1 - humidity), 2)
+                # Favorability scores
+                hour_score     = round(min(1, (registered_count / max(prediction,1)) * 1.2), 2)
+                temp_score     = round(max(0, 1 - abs(temp_c - 22) / 25), 2)
+                weather_score  = [1, 0.85, 0.5, 0.2][weather - 1]
+                weekday_score  = 0.75 if workingday == 1 else 0.95
+                humidity_score = round(max(0, 1 - humidity), 2)
 
-                # ── Confidence ring (SVG) ──
-                circ = 2 * 3.14159 * 40
+                circ = round(2 * 3.14159 * 40, 1)
                 dash = round(circ * confidence / 100, 1)
+
+                favor_bars = "".join([
+                    f'''<div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                            <span style="font-size:0.78rem;color:#5a7595;">{lbl}</span>
+                            <span style="font-size:0.78rem;color:#e2ecfb;font-weight:600;">{int(sc*100)}%</span>
+                        </div>
+                        <div style="background:rgba(56,189,248,0.08);border-radius:6px;height:6px;overflow:hidden;">
+                            <div style="width:{int(sc*100)}%;height:100%;
+                                        background:linear-gradient(90deg,{bc},rgba(56,189,248,0.5));
+                                        border-radius:6px;"></div>
+                        </div>
+                    </div>'''
+                    for lbl, sc, bc in [
+                        ("Hour",        hour_score,     "#38bdf8"),
+                        ("Temperature", temp_score,     "#4ade80"),
+                        ("Weather",     weather_score,  "#14b8a6"),
+                        ("Weekday",     weekday_score,  "#a78bfa"),
+                        ("Humidity",    humidity_score, "#fb923c"),
+                    ]
+                ])
 
                 st.markdown(f"""
                 <style>
@@ -504,11 +516,7 @@ elif "Predict" in page:
                     align-items: center;
                     justify-content: space-between;
                 }}
-                .pred-split {{
-                    display: flex;
-                    gap: 14px;
-                    margin-bottom: 14px;
-                }}
+                .pred-split {{ display:flex; gap:14px; margin-bottom:14px; }}
                 .pred-split-card {{
                     flex: 1;
                     background: linear-gradient(145deg, #0f1826, #0c1522);
@@ -534,34 +542,46 @@ elif "Predict" in page:
 
                 <div class="pred-main">
                     <div>
-                        <div style="font-size:0.65rem;letter-spacing:.14em;text-transform:uppercase;color:#3a5472;margin-bottom:8px;">Predicted Demand</div>
+                        <div style="font-size:0.65rem;letter-spacing:.14em;text-transform:uppercase;
+                                    color:#3a5472;margin-bottom:8px;">Predicted Demand</div>
                         <div style="display:flex;align-items:center;gap:12px;">
                             <span style="font-size:1.4rem;">🚲</span>
-                            <span style="font-size:3rem;font-weight:800;color:#e2ecfb;font-family:'JetBrains Mono',monospace;line-height:1;">{prediction:,}</span>
+                            <span style="font-size:3rem;font-weight:800;color:#e2ecfb;
+                                         font-family:'JetBrains Mono',monospace;
+                                         line-height:1;">{prediction:,}</span>
                         </div>
                         <div style="color:#3a5472;font-size:0.8rem;margin-top:4px;">bikes / hour</div>
                     </div>
                     <div style="text-align:center;">
                         <svg width="90" height="90" viewBox="0 0 90 90">
-                            <circle cx="45" cy="45" r="40" fill="none" stroke="rgba(56,189,248,0.1)" stroke-width="8"/>
-                            <circle cx="45" cy="45" r="40" fill="none" stroke="{conf_color}" stroke-width="8"
+                            <circle cx="45" cy="45" r="40" fill="none"
+                                stroke="rgba(56,189,248,0.1)" stroke-width="8"/>
+                            <circle cx="45" cy="45" r="40" fill="none"
+                                stroke="{conf_color}" stroke-width="8"
                                 stroke-dasharray="{dash} {circ}"
                                 stroke-dashoffset="{circ*0.25}"
                                 stroke-linecap="round"/>
-                            <text x="45" y="40" text-anchor="middle" fill="{conf_color}" font-size="16" font-weight="800" font-family="JetBrains Mono">{confidence}%</text>
-                            <text x="45" y="56" text-anchor="middle" fill="#3a5472" font-size="9" font-family="Plus Jakarta Sans">confidence</text>
+                            <text x="45" y="40" text-anchor="middle" fill="{conf_color}"
+                                font-size="16" font-weight="800"
+                                font-family="JetBrains Mono">{confidence}%</text>
+                            <text x="45" y="56" text-anchor="middle" fill="#3a5472"
+                                font-size="9" font-family="Plus Jakarta Sans">confidence</text>
                         </svg>
                     </div>
                 </div>
 
                 <div class="pred-split">
                     <div class="pred-split-card">
-                        <div style="font-size:0.65rem;letter-spacing:.12em;text-transform:uppercase;color:#3a5472;margin-bottom:8px;">👥 Casual Riders</div>
-                        <div style="font-size:2rem;font-weight:800;color:#a78bfa;font-family:'JetBrains Mono',monospace;">{casual_count:,}</div>
+                        <div style="font-size:0.65rem;letter-spacing:.12em;text-transform:uppercase;
+                                    color:#3a5472;margin-bottom:8px;">👥 Casual Riders</div>
+                        <div style="font-size:2rem;font-weight:800;color:#a78bfa;
+                                    font-family:'JetBrains Mono',monospace;">{casual_count:,}</div>
                     </div>
                     <div class="pred-split-card">
-                        <div style="font-size:0.65rem;letter-spacing:.12em;text-transform:uppercase;color:#3a5472;margin-bottom:8px;">📈 Registered</div>
-                        <div style="font-size:2rem;font-weight:800;color:#38bdf8;font-family:'JetBrains Mono',monospace;">{registered_count:,}</div>
+                        <div style="font-size:0.65rem;letter-spacing:.12em;text-transform:uppercase;
+                                    color:#3a5472;margin-bottom:8px;">📈 Registered</div>
+                        <div style="font-size:2rem;font-weight:800;color:#38bdf8;
+                                    font-family:'JetBrains Mono',monospace;">{registered_count:,}</div>
                     </div>
                 </div>
 
@@ -570,63 +590,55 @@ elif "Predict" in page:
                 </div>
 
                 <div class="favor-card">
-                    <div style="font-size:0.9rem;font-weight:700;color:#e2ecfb;margin-bottom:14px;">Feature Favorability</div>
+                    <div style="font-size:0.9rem;font-weight:700;color:#e2ecfb;margin-bottom:14px;">
+                        Feature Favorability</div>
                     <div style="display:flex;flex-direction:column;gap:10px;">
-                        {"".join([
-                            f'''<div>
-                                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                                    <span style="font-size:0.78rem;color:#5a7595;">{label}</span>
-                                    <span style="font-size:0.78rem;color:#e2ecfb;font-weight:600;">{int(score*100)}%</span>
-                                </div>
-                                <div style="background:rgba(56,189,248,0.08);border-radius:6px;height:6px;overflow:hidden;">
-                                    <div style="width:{int(score*100)}%;height:100%;background:linear-gradient(90deg,{bar_color},rgba(56,189,248,0.5));border-radius:6px;"></div>
-                                </div>
-                            </div>'''
-                            for label, score, bar_color in [
-                                ("Hour", hour_score, "#38bdf8"),
-                                ("Temperature", temp_score, "#4ade80"),
-                                ("Weather", weather_score, "#14b8a6"),
-                                ("Weekday", weekday_score, "#a78bfa"),
-                                ("Humidity", humidity_score, "#fb923c"),
-                            ]
-                        ])}
+                        {favor_bars}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
             except FileNotFoundError:
                 st.markdown("""
-                <div class="result-card" style="opacity:0.7;">
+                <div style="background:linear-gradient(145deg,#1a0f0f,#150c0c);
+                    border:1px solid rgba(248,113,113,0.2);border-radius:14px;
+                    padding:40px 30px;text-align:center;">
                     <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
-                    <div style="color:#fb923c;font-weight:600;">bike_model.pkl not found</div>
-                    <div style="color:#3a5472;font-size:0.8rem;margin-top:8px;">Place your trained model in the same folder as app.py</div>
+                    <div style="color:#fb923c;font-weight:600;font-size:0.95rem;">
+                        bike_model.pkl not found</div>
+                    <div style="color:#3a5472;font-size:0.8rem;margin-top:8px;">
+                        Place your trained model in the same folder as app.py and re-run.</div>
                 </div>
                 """, unsafe_allow_html=True)
+
             except Exception as e:
                 st.error(f"Prediction error: {e}")
+
         else:
             st.markdown("""
-            <div style="background:linear-gradient(145deg,#0f1826,#0c1522);border:1px solid rgba(56,189,248,0.09);
-                border-radius:14px;padding:60px 30px;text-align:center;opacity:0.5;">
+            <div style="background:linear-gradient(145deg,#0f1826,#0c1522);
+                border:1px solid rgba(56,189,248,0.09);border-radius:14px;
+                padding:60px 30px;text-align:center;opacity:0.5;">
                 <div style="font-size:3rem;margin-bottom:16px;">🔮</div>
                 <div style="color:#3a5472;font-size:0.9rem;line-height:1.6;">
-                    Configure conditions on the left<br>and click <b style="color:#5a7595;">Predict</b> to see results
+                    Configure conditions on the left<br>
+                    and click <b style="color:#5a7595;">Predict</b> to see results
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
-#  ANALYTICS
+#  PAGE: ANALYTICS
 # ─────────────────────────────────────────────
 elif "Analytics" in page:
-    st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">Analytics</div>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:22px;">Deep dive into rental patterns and trends</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:1.65rem;font-weight:800;color:#e2ecfb;margin-bottom:4px;">'
+                'Analytics</div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.78rem;color:#3a5472;margin-bottom:22px;">'
+                'Deep dive into rental patterns and trends</div>', unsafe_allow_html=True)
 
-    # Monthly dual-axis chart
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
     sec("Monthly Rental Volume", "Total rentals per month with average temperature")
-
     fig_m = make_subplots(specs=[[{"secondary_y": True}]])
     fig_m.add_trace(go.Bar(
         x=months_label, y=total_rentals, name="Total Rentals",
@@ -638,7 +650,6 @@ elif "Analytics" in page:
         marker_color=C['orange'], marker_line_width=0,
         hovertemplate='%{x}: <b>%{y}°C</b><extra></extra>'
     ), secondary_y=True)
-
     fig_m.update_layout(
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
         font=dict(family='Plus Jakarta Sans', color=C['text'], size=12),
@@ -659,7 +670,6 @@ elif "Analytics" in page:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Insight cards
     insights = [
         ("🌡️","Temperature Sweet Spot",
          "Demand peaks at 20–25°C. Below 5°C or above 35°C reduces rentals by up to 60%."),
