@@ -106,18 +106,31 @@ div[data-testid="stHorizontalBlock"] .stButton > button {
     border-bottom: 2px solid transparent !important;
     border-radius: 0 !important;
     color: #5a7595 !important;
-    font-size: 1.25rem !important;
+    font-size: 0.82rem !important;
     font-weight: 600 !important;
-    padding: 8px 20px !important;
+    padding: 10px 20px !important;
     width: auto !important;
     margin-top: 0 !important;
-    letter-spacing: 0.02em !important;
+    letter-spacing: 0.04em !important;
     transition: all 0.2s !important;
+    line-height: 1.5 !important;
+    white-space: pre-line !important;
 }
 div[data-testid="stHorizontalBlock"] .stButton > button:hover {
     color: #c8d6e8 !important;
     border-bottom: 2px solid rgba(56,189,248,0.4) !important;
     transform: none !important;
+}
+/* Make the emoji (first line) bigger */
+div[data-testid="stHorizontalBlock"] .stButton > button p {
+    font-size: 0.82rem !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    white-space: pre-line !important;
+}
+/* Target emoji using first-line pseudo */
+div[data-testid="stHorizontalBlock"] .stButton > button::first-line {
+    font-size: 2rem !important;
 }
 
 /* KPI cards */
@@ -243,20 +256,18 @@ header_col, nav_col = st.columns([2, 5])
 with header_col:
     st.markdown('<div class="main-header">🚲 Bike Rental AI</div>', unsafe_allow_html=True)
 
-nav_options = ["📊 Dashboard", "🌤 Weather", "🔮 Predict", "📈 Analytics"]
+nav_options = [
+    ("📊\nDashboard", "📊 Dashboard", "Dashboard"),
+    ("🌤\nWeather", "🌤 Weather", "Weather Forecast"),
+    ("🔮\nPredict", "🔮 Predict", "Predict Demand"),
+    ("📈\nAnalytics", "📈 Analytics", "Analytics"),
+]
 nav_cols = st.columns(len(nav_options) + 2)
 
-for i, option in enumerate(nav_options):
+for i, (label, option, page_name) in enumerate(nav_options):
     with nav_cols[i]:
-        if st.button(option, key=f"nav_{option}", use_container_width=True):
-            if option == "📊 Dashboard":
-                st.session_state.page = "Dashboard"
-            elif option == "🌤 Weather":
-                st.session_state.page = "Weather Forecast"
-            elif option == "🔮 Predict":
-                st.session_state.page = "Predict Demand"
-            elif option == "📈 Analytics":
-                st.session_state.page = "Analytics"
+        if st.button(label, key=f"nav_{option}", use_container_width=True):
+            st.session_state.page = page_name
             st.rerun()
 
 with nav_cols[-1]:
