@@ -106,7 +106,7 @@ div[data-testid="stHorizontalBlock"] .stButton > button {
     border-bottom: 2px solid transparent !important;
     border-radius: 0 !important;
     color: #5a7595 !important;
-    font-size: 0.88rem !important;
+    font-size: 1.25rem !important;
     font-weight: 600 !important;
     padding: 8px 20px !important;
     width: auto !important;
