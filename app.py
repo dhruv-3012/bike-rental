@@ -87,26 +87,37 @@ html, body, [class*="css"] {
     font-weight: 800;
     color: #e2ecfb;
 }
-.nav-button {
-    background: linear-gradient(145deg, #111827, #0f1c2e);
-    border: 1px solid rgba(56,189,248,0.12);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin: 4px 0;
-    color: #5a7595;
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 100%;
-    text-align: left;
+
+/* Top nav bar */
+.top-nav-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, #0f1826, #0c1522);
+    border-bottom: 1px solid rgba(56,189,248,0.10);
+    margin-bottom: 24px;
 }
-.nav-button:hover {
-    background: rgba(56,189,248,0.1);
-    color: #c8d6e8;
+
+/* Override streamlit button styles for nav */
+div[data-testid="stHorizontalBlock"] .stButton > button {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    color: #5a7595 !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    padding: 8px 20px !important;
+    width: auto !important;
+    margin-top: 0 !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.2s !important;
 }
-.nav-button-active {
-    background: rgba(56,189,248,0.15);
-    color: #38bdf8;
-    border-left: 3px solid #38bdf8;
+div[data-testid="stHorizontalBlock"] .stButton > button:hover {
+    color: #c8d6e8 !important;
+    border-bottom: 2px solid rgba(56,189,248,0.4) !important;
+    transform: none !important;
 }
 
 /* KPI cards */
@@ -226,53 +237,42 @@ if 'page' not in st.session_state:
     st.session_state.page = "Dashboard"
 
 # ─────────────────────────────────────────────
-#  CUSTOM SIDEBAR USING COLUMNS
+#  TOP NAVIGATION BAR
+# ─────────────────────────────────────────────
+header_col, nav_col = st.columns([2, 5])
+with header_col:
+    st.markdown('<div class="main-header">🚲 Bike Rental AI</div>', unsafe_allow_html=True)
+
+nav_options = ["📊 Dashboard", "🌤 Weather", "🔮 Predict", "📈 Analytics"]
+nav_cols = st.columns(len(nav_options) + 2)
+
+for i, option in enumerate(nav_options):
+    with nav_cols[i]:
+        if st.button(option, key=f"nav_{option}", use_container_width=True):
+            if option == "📊 Dashboard":
+                st.session_state.page = "Dashboard"
+            elif option == "🌤 Weather":
+                st.session_state.page = "Weather Forecast"
+            elif option == "🔮 Predict":
+                st.session_state.page = "Predict Demand"
+            elif option == "📈 Analytics":
+                st.session_state.page = "Analytics"
+            st.rerun()
+
+with nav_cols[-1]:
+    st.markdown("""
+    <div style="padding:6px 12px;background:rgba(20,184,166,0.05);border:1px solid rgba(20,184,166,0.13);border-radius:10px;display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e;display:inline-block;"></span>
+        <span style="color:#7a91b0;font-size:0.78rem;">Active · Ready</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown('<hr style="border:none;border-top:1px solid rgba(56,189,248,0.10);margin:8px 0 20px 0;">', unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+#  PAGE CONTENT
 # ─────────────────────────────────────────────
 with st.container():
-    cols = st.columns([1, 4])
-    
-    with cols[0]:
-        st.markdown('<div class="main-header">🚲 Bike Rental AI</div>', unsafe_allow_html=True)
-        
-        # Custom navigation buttons
-        nav_options = ["📊 Dashboard", "🌤 Weather", "🔮 Predict", "📈 Analytics"]
-        
-        for option in nav_options:
-            # Extract the name without emoji for comparison
-            option_name = option.split(" ")[1] if " " in option else option
-            
-            # Determine if this is the active page
-            is_active = (option_name == st.session_state.page or 
-                        (option_name == "Weather" and st.session_state.page == "Weather Forecast") or
-                        (option_name == "Predict" and st.session_state.page == "Predict Demand"))
-            
-            # Create button with appropriate styling
-            button_class = "nav-button-active" if is_active else "nav-button"
-            
-            if st.button(option, key=f"nav_{option}", use_container_width=True):
-                if option == "📊 Dashboard":
-                    st.session_state.page = "Dashboard"
-                elif option == "🌤 Weather":
-                    st.session_state.page = "Weather Forecast"
-                elif option == "🔮 Predict":
-                    st.session_state.page = "Predict Demand"
-                elif option == "📈 Analytics":
-                    st.session_state.page = "Analytics"
-                st.rerun()
-        
-        # Model status
-        st.markdown("""
-        <div style="margin-top:30px;padding:14px 16px;background:rgba(20,184,166,0.05);border:1px solid rgba(20,184,166,0.13);border-radius:12px;">
-            <div style="font-size:0.62rem;color:#1e3050;margin-bottom:8px;">MODEL STATUS</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e;"></span>
-                <span style="color:#7a91b0;font-size:0.81rem;">Active · Ready</span>
-            </div>
-            <div style="margin-top:8px;font-size:0.72rem;color:#1e3050;">Gradient Boosting · v1.0</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with cols[1]:
         # ─────────────────────────────────────────────
         #  DASHBOARD PAGE
         # ─────────────────────────────────────────────
